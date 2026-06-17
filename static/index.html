@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - Enterprise Knowledge Assistant (RAG)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Marked for Markdown Parsing, Prism for Syntax Highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <svg class="logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#logo-grad)"/>
+                        <path d="M2 17L12 22L22 17" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#8b5cf6"/>
+                                <stop offset="1" stop-color="#06b6d4"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1>Nexus</h1>
+                </div>
+                <span class="badge">RAG PRO</span>
+            </div>
+
+            <!-- Tab Selectors -->
+            <nav class="sidebar-nav">
+                <button id="btn-tab-chat" class="nav-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>Chat Workspace</span>
+                </button>
+                <button id="btn-tab-analytics" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Analytics & DB</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-divider"></div>
+
+            <!-- Knowledge Base Management -->
+            <div class="sidebar-section">
+                <div class="section-title-container">
+                    <h3>Knowledge Base</h3>
+                    <span id="doc-count-badge" class="section-badge">0</span>
+                </div>
+                
+                <!-- Upload Box -->
+                <div class="upload-zone" id="upload-zone">
+                    <input type="file" id="file-input" multiple accept=".pdf,.txt,.docx" class="hidden-file-input">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p class="upload-text">Drag & drop files here</p>
+                    <p class="upload-sub">PDF, TXT, DOCX up to 20MB</p>
+                </div>
+
+                <!-- Document List -->
+                <div class="document-list-container">
+                    <ul class="document-list" id="document-list">
+                        <!-- Documents dynamic list -->
+                        <div class="empty-docs-state">No files uploaded yet.</div>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Settings Accordion -->
+            <div class="sidebar-section settings-section">
+                <button class="settings-toggle" id="btn-settings-toggle">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Configuration & LLM</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="settings-content hidden" id="settings-content">
+                    <div class="setting-item">
+                        <label for="setting-provider">LLM Provider</label>
+                        <select id="setting-provider">
+                            <option value="gemini" selected>Google Gemini</option>
+                            <option value="openai">OpenAI</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="setting-model">Chat Model</label>
+                        <select id="setting-model">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="setting-temp">Temperature: <span id="temp-val">0.7</span></label>
+                        <input type="range" id="setting-temp" min="0" max="1" step="0.1" value="0.7">
+                    </div>
+                    <div class="setting-item">
+                        <label for="setting-topk">Search Results (Top-K)</label>
+                        <input type="number" id="setting-topk" min="1" max="10" value="4">
+                    </div>
+                    <div class="setting-item">
+                        <label for="setting-chunk-size">Chunk Size (chars)</label>
+                        <input type="number" id="setting-chunk-size" min="100" max="5000" step="100" value="1000">
+                    </div>
+                    <div class="setting-item">
+                        <label for="setting-chunk-overlap">Chunk Overlap (chars)</label>
+                        <input type="number" id="setting-chunk-overlap" min="0" max="1000" step="50" value="200">
+                    </div>
+                    <div class="setting-item">
+                        <label for="setting-apikey">Custom API Key (Optional)</label>
+                        <input type="password" id="setting-apikey" placeholder="Defaults to system env variable">
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header Bar -->
+            <header class="app-header">
+                <div class="header-info">
+                    <h2 id="header-title">Chat Workspace</h2>
+                    <p id="header-subtitle" class="subtitle">Index documents to enable Retrieval-Augmented Generation.</p>
+                </div>
+                <div class="header-status">
+                    <span id="active-model-badge" class="model-badge">gemini-2.5-flash</span>
+                    <span id="system-status-indicator" class="status-indicator online">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Ready</span>
+                    </span>
+                </div>
+            </header>
+
+            <!-- Tab Contents -->
+            <div class="tab-panels">
+                <!-- Chat Workspace Panel -->
+                <section id="panel-chat" class="tab-panel active">
+                    <div class="chat-workspace-container">
+                        <!-- Message log -->
+                        <div class="chat-messages" id="chat-messages">
+                            <!-- Empty chat state -->
+                            <div class="chat-welcome" id="chat-welcome">
+                                <div class="welcome-card">
+                                    <div class="welcome-icon">⚡</div>
+                                    <h3>Welcome to Nexus Knowledge Assistant</h3>
+                                    <p>Ask questions based on your private enterprise documents. The assistant retrieves relevant segments and cites them accurately.</p>
+                                    <div class="welcome-steps">
+                                        <div class="step">
+                                            <span class="step-num">1</span>
+                                            <p>Upload files (PDF, DOCX, TXT) in the sidebar.</p>
+                                        </div>
+                                        <div class="step">
+                                            <span class="step-num">2</span>
+                                            <p>Wait for parsing and embedding generation (1-5 secs).</p>
+                                        </div>
+                                        <div class="step">
+                                            <span class="step-num">3</span>
+                                            <p>Chat with your documents and view context citations!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel for showing active retrieved sources for the latest response -->
+                        <div class="citations-overlay hidden" id="citations-panel">
+                            <div class="citations-header">
+                                <h4>Retrieved Sources</h4>
+                                <button class="close-citations" id="btn-close-citations">✕</button>
+                            </div>
+                            <div class="citations-list" id="citations-list-container">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Chat Input bar -->
+                        <div class="chat-input-container">
+                            <form id="chat-form" class="chat-form">
+                                <textarea id="chat-input" placeholder="Type a message or ask about your documents..." rows="1" required></textarea>
+                                <div class="input-actions">
+                                    <button type="button" class="action-btn" id="btn-show-active-citations" title="Show last retrieved sources">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                                        <span id="citation-count-indicator" class="dot-count hidden">0</span>
+                                    </button>
+                                    <button type="submit" class="send-btn" id="btn-send-message">
+                                        <svg class="send-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Analytics & DB Panel -->
+                <section id="panel-analytics" class="tab-panel">
+                    <div class="analytics-container">
+                        <!-- Stats Grid -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">📄</div>
+                                <div class="stat-info">
+                                    <h4 id="stat-files">0</h4>
+                                    <p>Indexed Documents</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🧩</div>
+                                <div class="stat-info">
+                                    <h4 id="stat-chunks">0</h4>
+                                    <p>Total Chunks</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⚡</div>
+                                <div class="stat-info">
+                                    <h4 id="stat-latency">0 ms</h4>
+                                    <p>Avg Vector Latency</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">💾</div>
+                                <div class="stat-info">
+                                    <h4 id="stat-size">0 KB</h4>
+                                    <p>Knowledge Base Size</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vector Search Sandbox -->
+                        <div class="sandbox-card">
+                            <div class="card-header">
+                                <h3>Vector DB Search Sandbox</h3>
+                                <p>Search your vector database directly to inspect chunks and similarity scores without running LLM inference.</p>
+                            </div>
+                            <div class="sandbox-search-form">
+                                <input type="text" id="sandbox-search-input" placeholder="Enter query terms to test similarity search...">
+                                <button type="button" class="primary-btn" id="btn-sandbox-search">Search DB</button>
+                            </div>
+                            <div class="sandbox-results" id="sandbox-results">
+                                <div class="empty-sandbox-state">Submit a query above to view search results.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Alert system -->
+    <div id="notification-container" class="notification-container"></div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
